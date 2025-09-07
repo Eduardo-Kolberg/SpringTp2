@@ -1,44 +1,45 @@
 package com.infnet.tp2.service;
 
 import com.infnet.tp2.model.Supplier;
+import com.infnet.tp2.repository.SupplierRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class SupplierService {
-    private final List<Supplier> suppliers = new ArrayList<>();
-    private Long currentId = 1L;
+    private final SupplierRepository supplierRepository;
+
+    public SupplierService(SupplierRepository supplierRepository) {
+        this.supplierRepository = supplierRepository;
+    }
 
     public List<Supplier> findAll() {
-        return suppliers;
+        return supplierRepository.findAll();
     }
 
     public Optional<Supplier> findById(Long id) {
-        return suppliers.stream()
-                .filter(supplier -> supplier.getId().equals(id))
-                .findFirst();
+        return supplierRepository.findById(id);
     }
 
     public Supplier createSupplier(Supplier supplier) {
-        supplier.setId(currentId++);
-        suppliers.add(supplier);
-        return supplier;
+        return supplierRepository.save(supplier);
     }
 
     public Optional<Supplier> update(Long id, Supplier supplier) {
-        Optional<Supplier> existingSupplier = findById(id);
-        if (existingSupplier.isPresent()) {
+        if (supplierRepository.existsById(id)) {
             supplier.setId(id);
-            suppliers.set(suppliers.indexOf(existingSupplier.get()), supplier);
-            return Optional.of(supplier);
+            return Optional.of(supplierRepository.save(supplier));
         }
         return Optional.empty();
     }
 
     public boolean delete(Long id) {
-        return suppliers.removeIf(supplier -> supplier.getId().equals(id));
+        if (supplierRepository.existsById(id)) {
+            supplierRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 }

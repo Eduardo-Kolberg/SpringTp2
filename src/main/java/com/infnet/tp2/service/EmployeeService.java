@@ -1,44 +1,45 @@
 package com.infnet.tp2.service;
 
 import com.infnet.tp2.model.Employee;
+import com.infnet.tp2.repository.EmployeeRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class EmployeeService {
-    private final List<Employee> employees = new ArrayList<>();
-    private Long currentId = 1L;
+    private final EmployeeRepository employeeRepository;
+
+    public EmployeeService(EmployeeRepository employeeRepository) {
+        this.employeeRepository = employeeRepository;
+    }
 
     public List<Employee> findAll() {
-        return employees;
+        return employeeRepository.findAll();
     }
 
     public Optional<Employee> findById(Long id) {
-        return employees.stream()
-                .filter(employee -> employee.getId().equals(id))
-                .findFirst();
+        return employeeRepository.findById(id);
     }
 
     public Employee createEmployee(Employee employee) {
-        employee.setId(currentId++);
-        employees.add(employee);
-        return employee;
+        return employeeRepository.save(employee);
     }
 
     public Optional<Employee> update(Long id, Employee employee) {
-        Optional<Employee> existingEmployee = findById(id);
-        if (existingEmployee.isPresent()) {
+        if (employeeRepository.existsById(id)) {
             employee.setId(id);
-            employees.set(employees.indexOf(existingEmployee.get()), employee);
-            return Optional.of(employee);
+            return Optional.of(employeeRepository.save(employee));
         }
         return Optional.empty();
     }
 
     public boolean delete(Long id) {
-        return employees.removeIf(employee -> employee.getId().equals(id));
+        if (employeeRepository.existsById(id)) {
+            employeeRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 }

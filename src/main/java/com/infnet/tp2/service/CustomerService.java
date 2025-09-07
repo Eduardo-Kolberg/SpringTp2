@@ -1,44 +1,45 @@
 package com.infnet.tp2.service;
 
 import com.infnet.tp2.model.Customer;
+import com.infnet.tp2.repository.CustomerRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class CustomerService {
-    private final List<Customer> customers = new ArrayList<>();
-    private Long currentId = 1L;
+    private final CustomerRepository customerRepository;
+
+    public CustomerService(CustomerRepository customerRepository) {
+        this.customerRepository = customerRepository;
+    }
 
     public List<Customer> findAll() {
-        return customers;
+        return customerRepository.findAll();
     }
 
     public Optional<Customer> findById(Long id) {
-        return customers.stream()
-                .filter(customer -> customer.getId().equals(id))
-                .findFirst();
+        return customerRepository.findById(id);
     }
 
     public Customer createCustomer(Customer customer) {
-        customer.setId(currentId++);
-        customers.add(customer);
-        return customer;
+        return customerRepository.save(customer);
     }
 
     public Optional<Customer> update(Long id, Customer customer) {
-        Optional<Customer> existingCustomer = findById(id);
-        if (existingCustomer.isPresent()) {
+        if (customerRepository.existsById(id)) {
             customer.setId(id);
-            customers.set(customers.indexOf(existingCustomer.get()), customer);
-            return Optional.of(customer);
+            return Optional.of(customerRepository.save(customer));
         }
         return Optional.empty();
     }
 
     public boolean delete(Long id) {
-        return customers.removeIf(customer -> customer.getId().equals(id));
+        if (customerRepository.existsById(id)) {
+            customerRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 }
